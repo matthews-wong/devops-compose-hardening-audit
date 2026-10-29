@@ -29,8 +29,19 @@ Exit code is `1` when any finding is reported, `0` otherwise.
 | CH007  | no memory limit under `deploy.resources.limits` / `mem_limit` |
 | CH008  | `security_opt` lacks `no-new-privileges:true`            |
 
+## Caveats
+
+- Checks are per service and static: they do not inspect the image, so a
+  `user` set in the Dockerfile still counts as root here (CH002). Set `user`
+  in Compose to make the intent explicit.
+- CH001 treats a digest as pinned; a version tag is accepted but not
+  immutable.
+
 ## Validate
 
 ```sh
 make validate
 ```
+
+Runs the unit tests, then audits `examples/hardened.yml` (must pass) and
+`examples/insecure.yml` (must fail). CI runs the same target.
