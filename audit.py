@@ -40,10 +40,42 @@ def check_read_only(svc: dict) -> Iterator[str]:
         yield "root filesystem is writable; set `read_only: true`"
 
 
+def check_cap_drop(svc: dict) -> Iterator[str]:
+    if "ALL" not in [str(c).upper() for c in svc.get("cap_drop", [])]:
+        yield "`cap_drop` does not include ALL"
+
+
+def check_privileged(svc: dict) -> Iterator[str]:
+    if svc.get("privileged") is True:
+        yield "runs privileged"
+
+
+def check_healthcheck(svc: dict) -> Iterator[str]:
+    health = svc.get("healthcheck", {})
+    if not health or health.get("disable") is True:
+        yield "no healthcheck defined"
+
+
+def check_memory_limit(svc: dict) -> Iterator[str]:
+    limits = svc.get("deploy", {}).get("resources", {}).get("limits", {})
+    if not (limits.get("memory") or svc.get("mem_limit")):
+        yield "no memory limit; set `deploy.resources.limits.memory`"
+
+
+def check_no_new_privileges(svc: dict) -> Iterator[str]:
+    if "no-new-privileges:true" not in svc.get("security_opt", []):
+        yield "`security_opt` lacks no-new-privileges:true"
+
+
 CHECKS: dict[str, Check] = {
     "CH001": check_image_tag,
     "CH002": check_non_root,
     "CH003": check_read_only,
+    "CH004": check_cap_drop,
+    "CH005": check_privileged,
+    "CH006": check_healthcheck,
+    "CH007": check_memory_limit,
+    "CH008": check_no_new_privileges,
 }
 
 
